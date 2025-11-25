@@ -1,0 +1,8 @@
+15 Nov 2025 #223
+Country|Currency|Amount|Code|Rate
+Australia|dollar|1|AUD|15,123
+EMU|euro|1|EUR|24,580
+Japan|yen|100|JPY|16,789
+United Kingdom|pound|1|GBP|28,345
+United States|dollar|1|USD|22,150
+
