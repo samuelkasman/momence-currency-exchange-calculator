@@ -1,4 +1,8 @@
-import { CNB_DAILY_URL, MOCK_CNB_DAILY_URL } from "../config/exchangeRates";
+import {
+  CNB_DAILY_URL,
+  CNB_PROXY_URL,
+  MOCK_CNB_DAILY_URL,
+} from "../config/exchangeRates";
 import { type ExchangeRate, parseCnbText } from "../utils/parseCnbText";
 
 export const fetchExchangeRates = async (): Promise<ExchangeRate[]> => {
@@ -7,19 +11,39 @@ export const fetchExchangeRates = async (): Promise<ExchangeRate[]> => {
     import.meta.env.DEV &&
     import.meta.env.VITE_USE_CNB_MOCK !== "false";
 
-  const endpoint = preferMock ? MOCK_CNB_DAILY_URL : CNB_DAILY_URL;
+  const useProxy = import.meta.env.VITE_USE_CNB_PROXY !== "false";
+  const endpoints = preferMock
+    ? [MOCK_CNB_DAILY_URL]
+    : [...(useProxy ? [CNB_PROXY_URL] : []), CNB_DAILY_URL];
 
-  const response = await fetch(endpoint, {
-    headers: {
-      Accept: "text/plain",
-    },
-  });
+  let lastError: unknown;
 
-  if (!response.ok) {
-    throw new Error(`CNB request failed with status ${response.status}`);
+  for (const endpoint of endpoints) {
+    try {
+      const response = await fetch(endpoint, {
+        headers: {
+          Accept: "text/plain",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`CNB request failed with status ${response.status}`);
+      }
+
+      const responseText = await response.text();
+      return parseCnbText(responseText);
+    } catch (error) {
+      lastError = error;
+
+      if (import.meta.env.DEV) {
+        console.warn(`[fetchExchangeRates] Failed to fetch ${endpoint}`, error);
+      }
+    }
   }
 
-  const responseText = await response.text();
+  if (lastError instanceof Error) {
+    throw lastError;
+  }
 
-  return parseCnbText(responseText);
+  throw new Error("Failed to fetch CNB exchange rates");
 };
