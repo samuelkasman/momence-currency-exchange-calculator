@@ -9,6 +9,7 @@ This project uses Vite with React and TypeScript along with [Biome](https://biom
 - `pnpm preview` – preview the production build locally
 - `pnpm format` – run `biome format --write .`
 - `pnpm lint` – run `biome check .`
+- `pnpm test` – run tests
 
 ## Biome configuration
 

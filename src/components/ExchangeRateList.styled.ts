@@ -68,6 +68,10 @@ export const Amount = styled.span`
   font-variation-settings: "wght" 550;
 `;
 
+export const RateHeader = styled.span`
+  text-align: right;
+`;
+
 export const RateValue = styled.span`
   font-weight: 600;
   text-align: right;

@@ -57,10 +57,13 @@ export const Input = styled.input`
 
 export const Select = styled.select`
   font-size: 1rem;
-  background: ${({ theme }) => theme.colors.background};
+  color: ${({ theme }) => theme.colors.text};
+  background-color: ${({ theme }) => theme.colors.background};
   padding: ${({ theme }) => theme.spacing(3)};
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: ${({ theme }) => theme.radius.md};
+  appearance: none;
+  cursor: pointer;
 
   &:focus {
     outline: 2px solid ${({ theme }) => theme.colors.primary};

@@ -2,14 +2,15 @@ import { useEffect, useId, useMemo, useState } from "react";
 
 import {
   CZK_AMOUNT_PLACEHOLDER,
-  CZK_AMOUNT_STEP,
   DEFAULT_CZK_AMOUNT,
   MIN_CZK_AMOUNT,
 } from "../constants/converter";
 import {
   formatAmount,
   formatConvertedAmount,
+  formatCzkInputValue,
   formatRate,
+  normalizeAmountInputValue,
 } from "../helpers/formatters";
 import { useExchangeRates } from "../hooks/useExchangeRates";
 import type { ExchangeRate } from "../utils/parseCnbText";
@@ -29,14 +30,17 @@ import {
 } from "./Converter.styled";
 import { RetryButton, StateCard } from "./shared.styled";
 
-const getDefaultCurrency = (rates?: ExchangeRate[]) => rates?.[0]?.code ?? "";
-
 export const Converter = () => {
   const { data, isPending, isError, error, refetch } = useExchangeRates();
   const amountFieldId = useId();
   const currencyFieldId = useId();
   const [czkAmount, setCzkAmount] = useState(DEFAULT_CZK_AMOUNT);
   const [selectedCode, setSelectedCode] = useState("");
+
+  const getDefaultCurrency = (rates?: ExchangeRate[]) => rates?.[0]?.code ?? "";
+
+  const isAllowedAmountValue = (value: string) =>
+    value === "" || /^\d*\.?\d*$/.test(value);
 
   useEffect(() => {
     if (!data?.length) {
@@ -55,7 +59,7 @@ export const Converter = () => {
     [data, selectedCode],
   );
 
-  const parsedAmount = Number.parseFloat(czkAmount.replace(",", "."));
+  const parsedAmount = Number.parseFloat(czkAmount);
 
   const isValidAmount =
     Number.isFinite(parsedAmount) && parsedAmount >= MIN_CZK_AMOUNT;
@@ -64,6 +68,11 @@ export const Converter = () => {
     selectedRate && isValidAmount
       ? (parsedAmount / selectedRate.rate) * selectedRate.amount
       : null;
+
+  const formattedCzkAmount = useMemo(
+    () => formatCzkInputValue(czkAmount),
+    [czkAmount],
+  );
 
   if (isPending) {
     return <StateCard>Loading converter…</StateCard>;
@@ -89,8 +98,7 @@ export const Converter = () => {
         <Title>CZK → Foreign Currency</Title>
 
         <Description>
-          Enter an amount in Czech koruna and pick a currency to convert
-          instantly.
+          Enter an amount in CZK and pick a currency to convert instantly.
         </Description>
       </Heading>
 
@@ -103,12 +111,20 @@ export const Converter = () => {
           <span>Amount in CZK</span>
           <Input
             id={amountFieldId}
-            type="number"
-            min={MIN_CZK_AMOUNT}
-            step={CZK_AMOUNT_STEP}
-            value={czkAmount}
-            onChange={(event) => setCzkAmount(event.target.value)}
+            type="text"
+            inputMode="decimal"
+            value={formattedCzkAmount}
+            onChange={(event) => {
+              const normalizedValue = normalizeAmountInputValue(
+                event.target.value,
+              );
+
+              if (isAllowedAmountValue(normalizedValue)) {
+                setCzkAmount(normalizedValue);
+              }
+            }}
             placeholder={CZK_AMOUNT_PLACEHOLDER}
+            aria-label="Amount in CZK"
           />
         </FormField>
 
@@ -134,7 +150,8 @@ export const Converter = () => {
         <ResultValue data-testid="converted-value">
           {convertedAmount !== null
             ? formatConvertedAmount(convertedAmount)
-            : "—"}
+            : "—"}{" "}
+          {selectedRate?.code}
         </ResultValue>
 
         {selectedRate && (

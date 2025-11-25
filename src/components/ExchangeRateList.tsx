@@ -8,6 +8,7 @@ import {
   CurrencyInfo,
   CurrencyName,
   Heading,
+  RateHeader,
   RateValue,
   Table,
   TableHeader,
@@ -48,7 +49,7 @@ export const ExchangeRateList = () => {
           <span>Code</span>
           <span>Currency</span>
           <span>Amount</span>
-          <span>Rate (CZK)</span>
+          <RateHeader>Rate (CZK)</RateHeader>
         </TableHeader>
 
         {data.map((rate) => (
